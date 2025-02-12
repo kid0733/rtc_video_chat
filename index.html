@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Video Chat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Inter', sans-serif;
+      }
+
+      body {
+        background: #0f172a;
+        color: #e2e8f0;
+        min-height: 100vh;
+        padding: 2rem;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+
+      .header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        background: linear-gradient(45deg, #60a5fa, #a855f7);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .header p {
+        color: #94a3b8;
+        font-size: 1.1rem;
+      }
+
+      .video-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+      }
+
+      .video-container {
+        background: #1e293b;
+        border-radius: 1rem;
+        padding: 1rem;
+        position: relative;
+      }
+
+      .video-container h3 {
+        position: absolute;
+        top: 1.5rem;
+        left: 1.5rem;
+        background: rgba(0, 0, 0, 0.6);
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.9rem;
+        z-index: 10;
+      }
+
+      video {
+        width: 100%;
+        border-radius: 0.5rem;
+        background: #0f172a;
+        aspect-ratio: 16/9;
+        object-fit: cover;
+      }
+
+      .controls {
+        background: #1e293b;
+        padding: 2rem;
+        border-radius: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .control-section {
+        margin-bottom: 2rem;
+      }
+
+      .control-section:last-child {
+        margin-bottom: 0;
+      }
+
+      .control-section h2 {
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+        color: #e2e8f0;
+      }
+
+      .button-group {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+
+      button {
+        background: #3b82f6;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s;
+      }
+
+      button:hover:not(:disabled) {
+        background: #2563eb;
+        transform: translateY(-1px);
+      }
+
+      button:disabled {
+        background: #475569;
+        cursor: not-allowed;
+        opacity: 0.7;
+      }
+
+      .call-info {
+        display: none;
+        background: #334155;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        margin-top: 1rem;
+      }
+
+      .call-info.visible {
+        display: block;
+        animation: slideDown 0.3s ease-out;
+      }
+
+      .call-info h3 {
+        font-size: 1rem;
+        margin-bottom: 1rem;
+        color: #94a3b8;
+      }
+
+      .input-group {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      input {
+        flex: 1;
+        background: #1e293b;
+        border: 1px solid #475569;
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        color: white;
+        font-size: 1rem;
+      }
+
+      input:focus {
+        outline: none;
+        border-color: #3b82f6;
+      }
+
+      #copyButton {
+        background: #059669;
+      }
+
+      #copyButton:hover {
+        background: #047857;
+      }
+
+      #hangupButton {
+        background: #dc2626;
+      }
+
+      #hangupButton:hover:not(:disabled) {
+        background: #b91c1c;
+      }
+
+      .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-left: 1rem;
+      }
+
+      .status-badge.connected {
+        background: #059669;
+        color: white;
+      }
+
+      .status-badge.disconnected {
+        background: #dc2626;
+        color: white;
+      }
+
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 768px) {
+        .video-grid {
+          grid-template-columns: 1fr;
+        }
+        
+        .button-group {
+          flex-direction: column;
+        }
+        
+        button {
+          width: 100%;
+        }
+      }
+
+      .media-controls {
+        position: absolute;
+        bottom: 1rem;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 1rem;
+        background: rgba(0, 0, 0, 0.6);
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+        z-index: 10;
+      }
+
+      .control-button {
+        background: transparent;
+        border: none;
+        color: white;
+        padding: 0.5rem;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .control-button:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .control-button.muted .icon {
+        opacity: 0.5;
+      }
+
+      .volume-control {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: white;
+      }
+
+      .volume-control input[type="range"] {
+        width: 100px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 2px;
+        -webkit-appearance: none;
+      }
+
+      .volume-control input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 12px;
+        height: 12px;
+        background: white;
+        border-radius: 50%;
+        cursor: pointer;
+      }
+
+      .audio-indicator {
+        position: absolute;
+        bottom: 1rem;
+        right: 1rem;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #047857;
+        transition: all 0.2s;
+      }
+
+      .audio-indicator.speaking {
+        transform: scale(1.2);
+        background: #059669;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Video Chat</h1>
+        <p>Connect with anyone, anywhere with secure peer-to-peer video chat</p>
+      </div>
+
+      <div class="video-grid">
+        <div class="video-container">
+          <h3>Your Camera</h3>
+          <video id="webcamVideo" autoplay playsinline muted></video>
+          <div class="media-controls">
+            <button id="muteAudioButton" class="control-button" disabled>
+              <span class="icon">🎤</span>
+            </button>
+            <button id="muteVideoButton" class="control-button" disabled>
+              <span class="icon">📹</span>
+            </button>
+          </div>
+        </div>
+        <div class="video-container">
+          <h3>Remote User</h3>
+          <video id="remoteVideo" autoplay playsinline></video>
+          <div class="media-controls">
+            <div class="volume-control">
+              <span class="icon">🔊</span>
+              <input type="range" id="volumeSlider" min="0" max="100" value="100">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="control-section">
+          <h2>1. Start Your Camera</h2>
+          <div class="button-group">
+            <button id="webcamButton">Start Camera</button>
+          </div>
+        </div>
+
+        <div class="control-section">
+          <h2>2. Start or Join Call</h2>
+          <div class="button-group">
+            <button id="createCallButton" disabled>Create New Call</button>
+            <button id="answerButton" disabled>Join Existing Call</button>
+          </div>
+
+          <div id="callInfo" class="call-info">
+            <h3>Share this call ID with someone to connect:</h3>
+            <div class="input-group">
+              <input id="callInput" readonly />
+              <button id="copyButton">Copy ID</button>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <input id="answerInput" placeholder="Enter a Call ID to join..." />
+          </div>
+        </div>
+
+        <div class="control-section">
+          <h2>3. End Call</h2>
+          <div class="button-group">
+            <button id="hangupButton" disabled>End Call</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
